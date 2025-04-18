@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "fbdebab08d0edb93c16dc3ed",
+    "documentMicroversion": "cf592951365fcb05ff960d46",
+    "elementId": "b5362788692be97bd4c28b9e",
+    "fullConfiguration": "default",
+    "id": "MjwGhnrbDFJAWoYXy",
+    "isStandardContent": false,
+    "name": "Motor_part <2>",
+    "partId": "JOD",
+    "suppressed": false,
+    "type": "Part"
+}
