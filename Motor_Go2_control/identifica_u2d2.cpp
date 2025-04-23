@@ -19,7 +19,7 @@ void listPorts() {
 
     std::map<std::string, MotorInfo> motors = {
         {"FL", {"", 1, 0}},  // Motor Frontal Izquierdo
-        {"FR", {"", 0, 1}},  // Motor Frontal Derecho
+        {"FR", {"", 1, 0}},  // Motor Frontal Derecho
         {"RL", {"", 1, 0}},  // Motor Trasero Izquierdo
         {"RR", {"", 1, 0}}   // Motor Trasero Derecho
     };

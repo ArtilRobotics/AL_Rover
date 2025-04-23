@@ -12,9 +12,17 @@
 #include <libserialport.h>
 #include <map>
 #include "motor.h"
+#include <thread> // para sleep_for
+#include <chrono> // para milliseconds
+#include <cmath>
+
 
 #define MAX_BUFFER_SIZE 1024
 #define GEAR_RATIO 6.33f
+
+const float dt = 0.5f; // Miliseconds elevate
+const float velocidad = 0.05f; // radianes por segundo, por ejemplo
+
 
 struct ChannelConfig {
     std::string label;
@@ -71,7 +79,7 @@ std::vector<ChannelConfig> detect_channels() {
     };
 
     std::map<std::string, int> label_to_motor_id = {
-        {"FL", 1},
+        {"FL", 0},
         {"FR", 1},
         {"RL", 1},
         {"RR", 1}
@@ -192,7 +200,7 @@ void interactive_menu() {
             std::cout << "Posición (rad): ";
             std::cin >> pos;
             for (auto& [label, motor] : g_motors)
-                motor.setControlParams(0, 0, pos * GEAR_RATIO, 60.0f / (GEAR_RATIO * GEAR_RATIO), 5.0f / (GEAR_RATIO * GEAR_RATIO));
+                motor.setControlParams(0, 0, pos * GEAR_RATIO, 80.0f / (GEAR_RATIO * GEAR_RATIO), 6.0f / (GEAR_RATIO * GEAR_RATIO));
 
         } else if (opcion == 5) {
             float desplazamiento;
@@ -210,14 +218,54 @@ void interactive_menu() {
             std::cout << "¿Mover a estas posiciones? (s/n): ";
             char conf;
             std::cin >> conf;
+
             if (conf == 's' || conf == 'S') {
+                std::map<std::string, float> actuales;
+                std::map<std::string, float> diferencias;
+                std::map<std::string, float> pasos_valor;
+                int pasos_max = 0;
+            
+                // Primero, calculamos todo
                 for (const auto& [label, target] : targets) {
-                    g_motors[label].setControlParams(
+                    float actual = g_motors[label].getPosition() / GEAR_RATIO;
+                    float diferencia = target - actual;
+                    int pasos = std::ceil(std::abs(diferencia) / (velocidad * dt));
+                    float paso = (pasos == 0) ? 0 : diferencia / pasos;
+            
+                    actuales[label] = actual;
+                    diferencias[label] = diferencia;
+                    pasos_valor[label] = paso;
+            
+                    if (pasos > pasos_max)
+                        pasos_max = pasos;
+                }
+            
+                // Luego, hacemos los pasos simultáneamente
+                for (int i = 0; i < pasos_max; ++i) {
+                    for (const auto& [label, target] : targets) {
+                        float actual = actuales[label];
+                        float paso = pasos_valor[label];
+            
+                        float pos_interpolada = actual + paso * i;
+                        std::cout << "Moviendo " << label << " a: " << pos_interpolada << " rad\n";
+            
+                        g_motors[label].setControlParams(
+                            0, 0, pos_interpolada * GEAR_RATIO,
+                            60.0f / (GEAR_RATIO * GEAR_RATIO),
+                            5.0f / (GEAR_RATIO * GEAR_RATIO));
+                    }
+            
+                    std::this_thread::sleep_for(std::chrono::duration<float>(dt));
+                
+                
+                    // Asegurar posición final exacta
+                    /*g_motors[label].setControlParams(
                         0, 0, target * GEAR_RATIO,
                         60.0f / (GEAR_RATIO * GEAR_RATIO),
-                        5.0f / (GEAR_RATIO * GEAR_RATIO));
+                        5.0f / (GEAR_RATIO * GEAR_RATIO));*/
                 }
             }
+
 
         } else if (opcion == 6) {
             for (const auto& [label, motor] : g_motors) {

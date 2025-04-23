@@ -101,6 +101,7 @@ void control_loop() {
     std::cout << "Controles:\n";
     std::cout << "  W/A/S/D → Movimiento\n";
     std::cout << "  Flechas (↑↓←→) → Rotación\n";
+    std::cout << "  E → Detener\n";
     std::cout << "  Q para salir\n";
 
     while (g_running) {
@@ -113,14 +114,14 @@ void control_loop() {
             break;
         }
 
-        if (key == 'w') Vx = 1;
-        else if (key == 's') Vx = -1;
-        else if (key == 'a') Vy = 1;
-        else if (key == 'd') Vy = -1;
+        if (key == 'w') Vx = 0.5;
+        else if (key == 's') Vx = -0.5;
+        else if (key == 'a') Vy = 0.5;
+        else if (key == 'd') Vy = -0.5;
         else if (key == 27 && get_key() == '[') {
             char arrow = get_key();
-            if (arrow == 'A' || arrow == 'D') omega = 1;
-            else if (arrow == 'B' || arrow == 'C') omega = -1;
+            if (arrow == 'A' || arrow == 'D') omega = 0.5;
+            else if (arrow == 'B' || arrow == 'C') omega = -0.5;
         }
 
         float r = 0.1;
@@ -132,24 +133,25 @@ void control_loop() {
         float w4 = (1.0f / r) * ( Vx - Vy + L_plus_W * omega);
 
         std::map<std::string, std::string> ports = {
-            {"FF", serial_to_port[logical_serials["FF"]]},
+            {"FL", serial_to_port[logical_serials["FL"]]},
+            {"FR", serial_to_port[logical_serials["FR"]]},
             {"RR", serial_to_port[logical_serials["RR"]]},
             {"RL", serial_to_port[logical_serials["RL"]]}
         };
 
         // Mapeo: FF ID 1 = w1, FF ID 0 = w2, RR ID 0 = w3, RL ID 0 = w4
-        send_motor_cmd("FF", ports["FF"], 0, w1);
-        send_motor_cmd("FF", ports["FF"], 0, w2);
-        send_motor_cmd("RR", ports["RR"], 0, w3);
-        send_motor_cmd("RL", ports["RL"], 0, w4);
+        send_motor_cmd("FL", ports["FL"], 1, -w1);
+        send_motor_cmd("FR", ports["FR"], 0, w2);
+        send_motor_cmd("RL", ports["RL"], 0, -w3);
+        send_motor_cmd("RR", ports["RR"], 0, w4);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 
 	if (key == 'e') {
 	    // Detener todos los motores
-	    send_motor_cmd("FF", ports["FF"], 0, 0);
-	    send_motor_cmd("FF", ports["FF"], 0, 0);
+	    send_motor_cmd("FL", ports["FL"], 1, 0);
+	    send_motor_cmd("FR", ports["FR"], 0, 0);
 	    send_motor_cmd("RR", ports["RR"], 0, 0);
 	    send_motor_cmd("RL", ports["RL"], 0, 0);
 	}

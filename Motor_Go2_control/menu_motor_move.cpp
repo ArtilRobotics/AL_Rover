@@ -188,7 +188,9 @@ void interactive_menu() {
 
         switch (option) {
             case 1:
-                g_tor_des = g_spd_des = g_pos_des = g_k_pos = g_k_spd = 0.0f;
+                g_tor_des = g_spd_des = g_pos_des = g_k_spd = 0.0f;
+                g_k_pos = 5.0;
+
                 std::cout << "🛑 Motor detenido\n";
                 break;
             case 2:

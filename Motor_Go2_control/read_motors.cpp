@@ -76,7 +76,7 @@ int initialize_serial_port(const char* port_name) {
 std::vector<ChannelConfig> detect_connected_channels() {
     // IDs de Motores, 1 up, 2 down
     std::map<std::string, MotorInfo> motors = {
-        {"FL", {"", 1, 0}},
+        {"FL", {"", 0, 1}},
         {"FR", {"", 1, 0}},
         {"RL", {"", 1, 0}},
         {"RR", {"", 1, 0}}
@@ -192,6 +192,19 @@ void superior_positions(const std::vector<ChannelConfig>& channels) {
     for (const auto& cfg : channels) {
         const auto& label = cfg.label;
         int superior_id = cfg.motor_id_1;
+
+        if (g_motors.count(label)) {
+            float pos = g_motors[label][superior_id].getPosition() / GEAR_RATIO;
+            std::cout << label << " [" << superior_id << "] = " << pos << std::endl;
+        }
+    }
+    std::cout << std::endl;
+
+
+    std::cout << "\n=== Posiciones de los motores inferiores ===\n";
+    for (const auto& cfg : channels) {
+        const auto& label = cfg.label;
+        int superior_id = cfg.motor_id_2;
 
         if (g_motors.count(label)) {
             float pos = g_motors[label][superior_id].getPosition() / GEAR_RATIO;

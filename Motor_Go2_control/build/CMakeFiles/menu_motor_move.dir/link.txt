@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/menu_motor_move.dir/menu_motor_move.cpp.o CMakeFiles/menu_motor_move.dir/motor.cpp.o -o menu_motor_move 

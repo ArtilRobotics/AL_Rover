@@ -1,0 +1,8 @@
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/block_comm_test.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/menu_motor_move.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/control_mecanum.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/arms_control.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/read_motors.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/identifica_u2d2.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/edit_cache.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/rebuild_cache.dir
