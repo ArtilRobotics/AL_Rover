@@ -69,6 +69,7 @@ all: CMakeFiles/control_mecanum.dir/all
 all: CMakeFiles/arms_control.dir/all
 all: CMakeFiles/read_motors.dir/all
 all: CMakeFiles/identifica_u2d2.dir/all
+all: CMakeFiles/control.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -82,6 +83,7 @@ clean: CMakeFiles/control_mecanum.dir/clean
 clean: CMakeFiles/arms_control.dir/clean
 clean: CMakeFiles/read_motors.dir/clean
 clean: CMakeFiles/identifica_u2d2.dir/clean
+clean: CMakeFiles/control.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -117,7 +119,7 @@ CMakeFiles/block_comm_test.dir/clean:
 CMakeFiles/menu_motor_move.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu_motor_move.dir/build.make CMakeFiles/menu_motor_move.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu_motor_move.dir/build.make CMakeFiles/menu_motor_move.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=12,13,14 "Built target menu_motor_move"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=15,16,17 "Built target menu_motor_move"
 .PHONY : CMakeFiles/menu_motor_move.dir/all
 
 # Build rule for subdir invocation for target.
@@ -143,7 +145,7 @@ CMakeFiles/menu_motor_move.dir/clean:
 CMakeFiles/control_mecanum.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/control_mecanum.dir/build.make CMakeFiles/control_mecanum.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/control_mecanum.dir/build.make CMakeFiles/control_mecanum.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=7,8,9 "Built target control_mecanum"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=10,11,12 "Built target control_mecanum"
 .PHONY : CMakeFiles/control_mecanum.dir/all
 
 # Build rule for subdir invocation for target.
@@ -195,7 +197,7 @@ CMakeFiles/arms_control.dir/clean:
 CMakeFiles/read_motors.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/read_motors.dir/build.make CMakeFiles/read_motors.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/read_motors.dir/build.make CMakeFiles/read_motors.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=15,16,17 "Built target read_motors"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=18,19,20 "Built target read_motors"
 .PHONY : CMakeFiles/read_motors.dir/all
 
 # Build rule for subdir invocation for target.
@@ -221,7 +223,7 @@ CMakeFiles/read_motors.dir/clean:
 CMakeFiles/identifica_u2d2.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/identifica_u2d2.dir/build.make CMakeFiles/identifica_u2d2.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/identifica_u2d2.dir/build.make CMakeFiles/identifica_u2d2.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=10,11 "Built target identifica_u2d2"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=13,14 "Built target identifica_u2d2"
 .PHONY : CMakeFiles/identifica_u2d2.dir/all
 
 # Build rule for subdir invocation for target.
@@ -239,6 +241,32 @@ identifica_u2d2: CMakeFiles/identifica_u2d2.dir/rule
 CMakeFiles/identifica_u2d2.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/identifica_u2d2.dir/build.make CMakeFiles/identifica_u2d2.dir/clean
 .PHONY : CMakeFiles/identifica_u2d2.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/control.dir
+
+# All Build rule for target.
+CMakeFiles/control.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles --progress-num=7,8,9 "Built target control"
+.PHONY : CMakeFiles/control.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/control.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/control.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles 0
+.PHONY : CMakeFiles/control.dir/rule
+
+# Convenience name for target.
+control: CMakeFiles/control.dir/rule
+.PHONY : control
+
+# clean rule for target.
+CMakeFiles/control.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/clean
+.PHONY : CMakeFiles/control.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

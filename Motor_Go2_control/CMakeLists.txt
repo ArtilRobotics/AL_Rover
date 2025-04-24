@@ -27,6 +27,10 @@ add_executable(read_motors read_motors.cpp motor.cpp)
 
 add_executable(identifica_u2d2 identifica_u2d2.cpp)
 
+add_executable(control control.cpp motor.cpp) 
+ 
+target_link_libraries(control ${LIBSERIALPORT_LIBRARIES})
+
 target_link_libraries(identifica_u2d2 ${LIBSERIALPORT_LIBRARIES})
 
 

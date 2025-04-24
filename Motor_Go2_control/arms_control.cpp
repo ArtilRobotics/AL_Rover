@@ -164,6 +164,13 @@ void interactive_menu() {
         pos_ref[label] = motor.getPosition() / GEAR_RATIO;
     }
 
+    std::cout << "=== Posiciones iniciales ===\n";
+    for (const auto& [label, pos] : pos_ref) {
+        std::cout << label << ": " << pos << " rad\n";
+    }
+
+    //Posiciones de inicio
+
     while (g_running) {
         std::cout << "\n=== MENÚ CONTROL MOTORES ===\n";
         std::cout << "1. Detener motores\n";
@@ -225,8 +232,23 @@ void interactive_menu() {
             std::map<std::string, float> targets;
             for (const auto& [label, ref] : pos_ref) {
                 float target = ref + desplazamiento * pos_sign[label];
+
+                //Para bajar el Rover
+                if (desplazamiento < 0) {
+                    // Si va a sobrepasar la posición inicial, lo limitamos
+                    if ((pos_sign[label] > 0 && target < ref) || 
+                        (pos_sign[label] < 0 && target > ref)) {
+                        target = ref;
+                    }
+                }
+                std::cout << label << ": " << target << " rad";
+                if (std::abs(target - ref) < 1e-3) {
+                    std::cout << " (↩ Se queda en posición inicial)";
+                }
+
                 targets[label] = target;
                 std::cout << label << ": " << target << " rad\n";
+            
             }
 
             std::cout << "¿Mover a estas posiciones? (s/n): ";
@@ -239,7 +261,6 @@ void interactive_menu() {
                 std::map<std::string, float> pasos_valor;
                 int pasos_max = 0;
             
-                // Primero, calculamos todo
                 for (const auto& [label, target] : targets) {
                     float actual = g_motors[label].getPosition() / GEAR_RATIO;
                     float diferencia = target - actual;
@@ -253,8 +274,7 @@ void interactive_menu() {
                     if (pasos > pasos_max)
                         pasos_max = pasos;
                 }
-            
-                // Luego, hacemos los pasos simultáneamente
+
                 for (int i = 0; i < pasos_max; ++i) {
                     for (const auto& [label, target] : targets) {
                         float actual = actuales[label];
@@ -270,13 +290,6 @@ void interactive_menu() {
                     }
             
                     std::this_thread::sleep_for(std::chrono::duration<float>(dt));
-                
-                
-                    // Asegurar posición final exacta
-                    /*g_motors[label].setControlParams(
-                        0, 0, target * GEAR_RATIO,
-                        60.0f / (GEAR_RATIO * GEAR_RATIO),
-                        5.0f / (GEAR_RATIO * GEAR_RATIO));*/
                 }
             }
 

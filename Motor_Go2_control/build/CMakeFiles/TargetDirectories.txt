@@ -4,5 +4,6 @@
 /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/arms_control.dir
 /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/read_motors.dir
 /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/identifica_u2d2.dir
+/home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/control.dir
 /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/edit_cache.dir
 /home/rover/AL_Rover/Motor_Go2_control/build/CMakeFiles/rebuild_cache.dir

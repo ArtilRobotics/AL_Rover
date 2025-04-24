@@ -194,6 +194,19 @@ identifica_u2d2/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/identifica_u2d2.dir/build.make CMakeFiles/identifica_u2d2.dir/build
 .PHONY : identifica_u2d2/fast
 
+#=============================================================================
+# Target rules for targets named control
+
+# Build rule for target.
+control: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 control
+.PHONY : control
+
+# fast build rule for target.
+control/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/build
+.PHONY : control/fast
+
 arms_control.o: arms_control.cpp.o
 .PHONY : arms_control.o
 
@@ -241,6 +254,30 @@ block_comm_demo.s: block_comm_demo.cpp.s
 block_comm_demo.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/block_comm_test.dir/build.make CMakeFiles/block_comm_test.dir/block_comm_demo.cpp.s
 .PHONY : block_comm_demo.cpp.s
+
+control.o: control.cpp.o
+.PHONY : control.o
+
+# target to build an object file
+control.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/control.cpp.o
+.PHONY : control.cpp.o
+
+control.i: control.cpp.i
+.PHONY : control.i
+
+# target to preprocess a source file
+control.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/control.cpp.i
+.PHONY : control.cpp.i
+
+control.s: control.cpp.s
+.PHONY : control.s
+
+# target to generate assembly for a file
+control.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/control.cpp.s
+.PHONY : control.cpp.s
 
 control_mecanum.o: control_mecanum.cpp.o
 .PHONY : control_mecanum.o
@@ -324,6 +361,7 @@ motor.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/control_mecanum.dir/build.make CMakeFiles/control_mecanum.dir/motor.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/arms_control.dir/build.make CMakeFiles/arms_control.dir/motor.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/read_motors.dir/build.make CMakeFiles/read_motors.dir/motor.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/motor.cpp.o
 .PHONY : motor.cpp.o
 
 motor.i: motor.cpp.i
@@ -336,6 +374,7 @@ motor.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/control_mecanum.dir/build.make CMakeFiles/control_mecanum.dir/motor.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/arms_control.dir/build.make CMakeFiles/arms_control.dir/motor.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/read_motors.dir/build.make CMakeFiles/read_motors.dir/motor.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/motor.cpp.i
 .PHONY : motor.cpp.i
 
 motor.s: motor.cpp.s
@@ -348,6 +387,7 @@ motor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/control_mecanum.dir/build.make CMakeFiles/control_mecanum.dir/motor.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/arms_control.dir/build.make CMakeFiles/arms_control.dir/motor.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/read_motors.dir/build.make CMakeFiles/read_motors.dir/motor.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/control.dir/build.make CMakeFiles/control.dir/motor.cpp.s
 .PHONY : motor.cpp.s
 
 read_motors.o: read_motors.cpp.o
@@ -384,6 +424,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... arms_control"
 	@echo "... block_comm_test"
+	@echo "... control"
 	@echo "... control_mecanum"
 	@echo "... identifica_u2d2"
 	@echo "... menu_motor_move"
@@ -394,6 +435,9 @@ help:
 	@echo "... block_comm_demo.o"
 	@echo "... block_comm_demo.i"
 	@echo "... block_comm_demo.s"
+	@echo "... control.o"
+	@echo "... control.i"
+	@echo "... control.s"
 	@echo "... control_mecanum.o"
 	@echo "... control_mecanum.i"
 	@echo "... control_mecanum.s"

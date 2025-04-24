@@ -52,4 +52,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/arms_control.dir/DependInfo.cmake"
   "CMakeFiles/read_motors.dir/DependInfo.cmake"
   "CMakeFiles/identifica_u2d2.dir/DependInfo.cmake"
+  "CMakeFiles/control.dir/DependInfo.cmake"
   )
