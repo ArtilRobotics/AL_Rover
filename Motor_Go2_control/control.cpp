@@ -183,17 +183,9 @@ void interactive_menu() {
             std::cout << "Ingrese Kpos: ";
             std::cin >> k_pos;
 
-            for (auto& [label, motor] : g_motors) {
-                float actual_pos = motor.getPosition() / GEAR_RATIO;
-                std::cout << "Motor " << label << " posición actual: " << actual_pos << " rad\n";
-
-                // Aplicar control de posición para mantener la posición actual
-                motor.setControlParams(
-                    0, 0, actual_pos * GEAR_RATIO,  // Setea como objetivo la posición actual
-                    k_pos, 0);
-            }
-
-            std::cout << "Motores detenidos manteniendo su posición actual.\n";
+            for (auto& [label, motor] : g_motors)
+                motor.setControlParams(0, 0, 0, k_pos, 0);
+            std::cout << "Motores detenidos.\n";
 
         } else if (opcion == 2) {
             float torque;

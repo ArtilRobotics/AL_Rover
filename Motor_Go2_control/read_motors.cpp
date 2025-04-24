@@ -28,6 +28,7 @@ struct ChannelConfig {
     int motor_id_1;
     int motor_id_2;
 };
+float g_k_pos = 0.0f;
 
 std::map<std::string, std::array<Motor, 2>> g_motors;
 std::atomic<bool> g_running(true);

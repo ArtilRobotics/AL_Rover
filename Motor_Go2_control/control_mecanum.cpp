@@ -140,10 +140,10 @@ void control_loop() {
         };
 
         // Mapeo: FF ID 1 = w1, FF ID 0 = w2, RR ID 0 = w3, RL ID 0 = w4
-        send_motor_cmd("FL", ports["FL"], 1, -w1);
-        send_motor_cmd("FR", ports["FR"], 0, w2);
-        send_motor_cmd("RL", ports["RL"], 0, -w3);
-        send_motor_cmd("RR", ports["RR"], 0, w4);
+        send_motor_cmd("FL", ports["FL"], 1, w1);
+        send_motor_cmd("FR", ports["FR"], 0, -w2);
+        send_motor_cmd("RL", ports["RL"], 0, w3);
+        send_motor_cmd("RR", ports["RR"], 0, -w4);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
