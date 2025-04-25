@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/block_comm_test.dir/block_comm_demo.cpp.o CMakeFiles/block_comm_test.dir/motor.cpp.o -o block_comm_test 

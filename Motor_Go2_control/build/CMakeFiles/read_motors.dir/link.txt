@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/read_motors.dir/read_motors.cpp.o CMakeFiles/read_motors.dir/motor.cpp.o -o read_motors  -lserialport 
