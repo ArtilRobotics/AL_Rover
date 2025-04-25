@@ -13,6 +13,9 @@ pkg_check_modules(LIBSERIALPORT REQUIRED libserialport)
 include_directories(${LIBSERIALPORT_INCLUDE_DIRS})
 link_directories(${LIBSERIALPORT_LIBRARY_DIRS})
 
+include_directories(/usr/include)
+link_directories(/usr/lib)
+
 add_executable(block_comm_test block_comm_demo.cpp motor.cpp)
 
 
@@ -35,6 +38,7 @@ target_link_libraries(identifica_u2d2 ${LIBSERIALPORT_LIBRARIES})
 
 
 target_link_libraries(control_mecanum ${LIBSERIALPORT_LIBRARIES})
+target_link_libraries(control_mecanum spnav)
 
 target_link_libraries(arms_control ${LIBSERIALPORT_LIBRARIES})
 

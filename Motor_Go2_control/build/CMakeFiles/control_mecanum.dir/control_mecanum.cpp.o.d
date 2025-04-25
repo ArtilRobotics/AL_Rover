@@ -213,4 +213,6 @@ CMakeFiles/control_mecanum.dir/control_mecanum.cpp.o: \
  /usr/include/c++/11/bits/atomic_lockfree_defines.h \
  /usr/include/libserialport.h /usr/include/c++/11/cstring \
  /usr/include/string.h /usr/include/strings.h \
- /home/rover/AL_Rover/Motor_Go2_control/motor.h
+ /home/rover/AL_Rover/Motor_Go2_control/motor.h /usr/include/spnav.h \
+ /usr/include/spnav_config.h /usr/include/X11/Xlib.h /usr/include/X11/X.h \
+ /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h

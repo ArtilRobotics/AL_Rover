@@ -13,6 +13,7 @@
 #include <cerrno>
 #include <cstring>
 #include "motor.h"
+#include <spnav.h>
 
 #define MAX_BUFFER_SIZE 1024
 #define GEAR_RATIO 6.33f
@@ -20,14 +21,12 @@
 std::atomic<bool> g_running(true);
 Motor g_motor;
 
-// Mapea nombre lógico a número de serie USB
 std::map<std::string, std::string> logical_serials = {
     {"FR", "FT8ISETK"},  
-    {"FL", "FT7WBEJZ"},   // w1 y w2
-    {"RR", "FT89FBGO"},   // w3
-    {"RL", "FT94W6WF"}    // w4
+    {"FL", "FT7WBEJZ"},
+    {"RR", "FT89FBGO"},
+    {"RL", "FT94W6WF"}
 };
-
 
 std::map<std::string, std::string> detect_ports() {
     std::map<std::string, std::string> serial_to_port;
@@ -68,18 +67,6 @@ int initialize_serial_port(const char* port_name) {
     return fd;
 }
 
-char get_key() {
-    struct termios oldt, newt;
-    char ch;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    return ch;
-}
-
 void send_motor_cmd(const std::string& name, const std::string& port, int id, float speed_rad_s) {
     int fd = initialize_serial_port(port.c_str());
     if (fd < 0) return;
@@ -92,36 +79,69 @@ void send_motor_cmd(const std::string& name, const std::string& port, int id, fl
     close(fd);
 }
 
+
 void control_loop() {
     auto serial_to_port = detect_ports();
 
-    float Vx = 0, Vy = 0, omega = 0;
-    char key;
+    if (spnav_open() == -1) {
+        std::cerr << "No se pudo conectar al SpaceMouse\n";
+        return;
+    }
 
-    std::cout << "Controles:\n";
-    std::cout << "  W/A/S/D → Movimiento\n";
-    std::cout << "  Flechas (↑↓←→) → Rotación\n";
-    std::cout << "  E → Detener\n";
-    std::cout << "  Q para salir\n";
+    const float scale_translation = 0.003f;
+    const float scale_rotation = 0.002f;
+    const int threshold = 100; // Umbral de sensibilidad mínima
+    const float min_speed = 0.3f;
+    const float max_speed = 0.8f;
+    const float input_max = 350.0f; // Más o menos lo máximo que detecta el SpaceMouse
+
+    std::cout << "Controlando con SpaceMouse...\n";
+    std::cout << "CTRL+C para salir\n";
+
+    spnav_event event;
+    std::map<std::string, int> fds;
+
+    // Abrir los puertos una sola vez
+    for (const auto& pair : logical_serials) {
+        const std::string& logical = pair.first;
+        const std::string& serial = pair.second;
+        const std::string& port = detect_ports()[serial];
+        int fd = initialize_serial_port(port.c_str());
+        if (fd >= 0) {
+            fds[logical] = fd;
+        }
+    }
 
     while (g_running) {
-        key = get_key();
+        float Vx = 0, Vy = 0, omega = 0;
 
-        Vx = Vy = omega = 0;
+        if (spnav_poll_event(&event)) {
+            if (event.type == SPNAV_EVENT_MOTION) {
+                float raw_x = event.motion.x;
+                float raw_y = event.motion.y;
+                float raw_z = event.motion.z;
+                float raw_rz = event.motion.ry;
 
-        if (key == 'q') {
-            g_running = false;
-            break;
-        }
+                // Función de mapeo
+                auto map_input = [&](float input) -> float {
+                    if (std::abs(input) < threshold) return 0.0f;
+                    float norm = std::min(std::abs(input) / input_max, 1.0f);
+                    float scaled = min_speed + (max_speed - min_speed) * norm;
+                    return (input > 0) ? scaled : -scaled;
+                };
 
-        if (key == 'w') Vx = 0.5;
-        else if (key == 's') Vx = -0.5;
-        else if (key == 'a') Vy = 0.5;
-        else if (key == 'd') Vy = -0.5;
-        else if (key == 27 && get_key() == '[') {
-            char arrow = get_key();
-            if (arrow == 'A' || arrow == 'D') omega = 0.5;
-            else if (arrow == 'B' || arrow == 'C') omega = -0.5;
+                Vx = map_input(raw_z);
+                Vy = map_input(-raw_x);
+                omega = map_input(raw_rz);
+
+                std::cout << "Mapped Vx: " << Vx << " m/s, "
+                          << "Vy: " << Vy << " m/s, "
+                          << "Omega: " << omega << " rad/s\n";
+            } else if (event.type == SPNAV_EVENT_BUTTON) {
+                Vx = 0;
+                Vy = 0;
+                omega = 0;
+            }
         }
 
         float r = 0.1;
@@ -132,34 +152,25 @@ void control_loop() {
         float w3 = (1.0f / r) * ( Vx + Vy - L_plus_W * omega);
         float w4 = (1.0f / r) * ( Vx - Vy + L_plus_W * omega);
 
-        std::map<std::string, std::string> ports = {
-            {"FL", serial_to_port[logical_serials["FL"]]},
-            {"FR", serial_to_port[logical_serials["FR"]]},
-            {"RR", serial_to_port[logical_serials["RR"]]},
-            {"RL", serial_to_port[logical_serials["RL"]]}
-        };
+        if (!fds.empty()) {
+            send_motor_cmd("FL", detect_ports()[logical_serials["FL"]], 1, w1);
+            send_motor_cmd("FR", detect_ports()[logical_serials["FR"]], 0, -w2);
+            send_motor_cmd("RL", detect_ports()[logical_serials["RL"]], 0, w3);
+            send_motor_cmd("RR", detect_ports()[logical_serials["RR"]], 0, -w4);
+        }
 
-        // Mapeo: FF ID 1 = w1, FF ID 0 = w2, RR ID 0 = w3, RL ID 0 = w4
-        send_motor_cmd("FL", ports["FL"], 1, w1);
-        send_motor_cmd("FR", ports["FR"], 0, -w2);
-        send_motor_cmd("RL", ports["RL"], 0, w3);
-        send_motor_cmd("RR", ports["RR"], 0, -w4);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-
-	if (key == 'e') {
-	    // Detener todos los motores
-	    send_motor_cmd("FL", ports["FL"], 1, 0);
-	    send_motor_cmd("FR", ports["FR"], 0, 0);
-	    send_motor_cmd("RR", ports["RR"], 0, 0);
-	    send_motor_cmd("RL", ports["RL"], 0, 0);
-	}
-
+        std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Más rápido que 50ms
     }
 
+    // Cerrar puertos
+    for (auto& fd_pair : fds) {
+        close(fd_pair.second);
+    }
+
+    spnav_close();
     std::cout << "Saliendo...\n";
 }
+
 
 void signal_handler(int) {
     g_running = false;
@@ -170,4 +181,3 @@ int main() {
     control_loop();
     return 0;
 }
-

@@ -265,13 +265,9 @@ void interactive_menu() {
     while (g_running) {
         std::cout << "\n=== MENÚ CONTROL MOTORES ===\n";
         std::cout << "1. Detener motores\n";
-        std::cout << "2. Modo Torque\n";
-        std::cout << "3. Modo Velocidad\n";
-        std::cout << "4. Modo Posición\n";
-        std::cout << "5. Desplazamiento relativo (menu)\n";
-        std::cout << "6. Ver estado actual\n";
-        std::cout << "7. Salir\n";
-        std::cout << "8. Control con teclado (W/A/S/D + flechas)\n";
+        std::cout << "2. Desplazamiento relativo (menu)\n";
+        std::cout << "3. Control con teclado (W/A/S/D + flechas)\n";
+        std::cout << "4. Salir\n";
         std::cout << "Opción: ";
 
         int opcion;
@@ -289,27 +285,6 @@ void interactive_menu() {
             std::cout << "Motores detenidos manteniendo su posición actual.\n";
 
         } else if (opcion == 2) {
-            float torque;
-            std::cout << "Torque deseado (0-1): ";
-            std::cin >> torque;
-            for (auto& [label, motor] : g_motors)
-                motor.setControlParams(torque / GEAR_RATIO, 0, 0, 0, 0);
-
-        } else if (opcion == 3) {
-            float spd;
-            std::cout << "Velocidad (rad/s): ";
-            std::cin >> spd;
-            for (auto& [label, motor] : g_motors)
-                motor.setControlParams(0, spd * GEAR_RATIO, 0, 0, 0.4f / (GEAR_RATIO * GEAR_RATIO));
-
-        } else if (opcion == 4) {
-            float pos;
-            std::cout << "Posición (rad): ";
-            std::cin >> pos;
-            for (auto& [label, motor] : g_motors)
-                motor.setControlParams(0, 0, pos * GEAR_RATIO, 80.0f / (GEAR_RATIO * GEAR_RATIO), 6.0f / (GEAR_RATIO * GEAR_RATIO));
-
-        } else if (opcion == 5) {
             float desplazamiento;
             std::cout << "Desplazamiento en rad: ";
             std::cin >> desplazamiento;
@@ -374,23 +349,14 @@ void interactive_menu() {
                 }
             }
 
-        } else if (opcion == 6) {
-            for (const auto& [label, motor] : g_motors) {
-                std::cout << "Motor " << label
-                          << " | Torque: " << motor.getTorque() * GEAR_RATIO
-                          << " | Velocidad: " << motor.getSpeed() / GEAR_RATIO
-                          << " | Posición: " << motor.getPosition() / GEAR_RATIO
-                          << " | Temp: " << motor.getTemperature()
-                          << " | Error: " << motor.getError()
-                          << "\n";
-            }
+        
 
-        } else if (opcion == 7) {
-            g_running = false;
-
-        } else if (opcion == 8) {
+        } else if (opcion == 3) {
             std::cout << "Ingresando a control con teclado...\n";
             control_loop_keyboard();
+
+        } else if (opcion == 4) {
+            g_running = false;
 
         } else {
             std::cout << "Opción inválida.\n";

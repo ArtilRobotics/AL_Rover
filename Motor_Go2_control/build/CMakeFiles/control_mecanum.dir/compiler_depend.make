@@ -266,7 +266,13 @@ CMakeFiles/control_mecanum.dir/control_mecanum.cpp.o: ../control_mecanum.cpp \
   /usr/include/c++/11/cstring \
   /usr/include/string.h \
   /usr/include/strings.h \
-  ../motor.h
+  ../motor.h \
+  /usr/include/spnav.h \
+  /usr/include/spnav_config.h \
+  /usr/include/X11/Xlib.h \
+  /usr/include/X11/X.h \
+  /usr/include/X11/Xfuncproto.h \
+  /usr/include/X11/Xosdefs.h
 
 CMakeFiles/control_mecanum.dir/motor.cpp.o: ../motor.cpp \
   /usr/include/stdc-predef.h \
@@ -455,6 +461,12 @@ CMakeFiles/control_mecanum.dir/motor.cpp.o: ../motor.cpp \
 
 
 ../motor.cpp:
+
+/usr/include/X11/Xfuncproto.h:
+
+/usr/include/X11/X.h:
+
+/usr/include/spnav.h:
 
 ../motor.h:
 
@@ -668,6 +680,8 @@ CMakeFiles/control_mecanum.dir/motor.cpp.o: ../motor.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
 
+/usr/include/X11/Xlib.h:
+
 /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
 
 /usr/include/c++/11/ostream:
@@ -718,6 +732,8 @@ CMakeFiles/control_mecanum.dir/motor.cpp.o: ../motor.cpp \
 
 /usr/include/c++/11/bits/range_access.h:
 
+/usr/include/X11/Xosdefs.h:
+
 /usr/include/c++/11/map:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
@@ -737,6 +753,8 @@ CMakeFiles/control_mecanum.dir/motor.cpp.o: ../motor.cpp \
 /usr/include/c++/11/bits/move.h:
 
 /usr/include/c++/11/bits/hash_bytes.h:
+
+/usr/include/spnav_config.h:
 
 /usr/include/c++/11/bits/string_view.tcc:
 
