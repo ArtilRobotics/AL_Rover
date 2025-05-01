@@ -1,0 +1,10 @@
+/app/build/CMakeFiles/block_comm_test.dir
+/app/build/CMakeFiles/menu_motor_move.dir
+/app/build/CMakeFiles/control_mecanum.dir
+/app/build/CMakeFiles/arms_control.dir
+/app/build/CMakeFiles/read_motors.dir
+/app/build/CMakeFiles/identifica_u2d2.dir
+/app/build/CMakeFiles/control.dir
+/app/build/CMakeFiles/listar_puertos.dir
+/app/build/CMakeFiles/edit_cache.dir
+/app/build/CMakeFiles/rebuild_cache.dir

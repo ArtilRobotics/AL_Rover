@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/identifica_u2d2.dir/identifica_u2d2.cpp.o -o identifica_u2d2  -lserialport 

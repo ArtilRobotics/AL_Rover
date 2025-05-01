@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/control_mecanum.dir/control_mecanum.cpp.o CMakeFiles/control_mecanum.dir/motor.cpp.o -o control_mecanum  -lserialport -lspnav 
