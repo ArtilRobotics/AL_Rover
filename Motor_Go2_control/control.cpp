@@ -269,7 +269,8 @@ void joystick_loop() {
             for (auto& [label, motor] : g_motors) {
                 float nueva_pos = pos_ref[label] + delta * pos_sign[label];
                 pos_ref[label] = nueva_pos;
-                motor.setControlParams(0, 0, nueva_pos * GEAR_RATIO, k_pos, 0);
+                motor.setControlParams(0, 0, nueva_pos * GEAR_RATIO, 60.0f / (GEAR_RATIO * GEAR_RATIO), 5.0f / (GEAR_RATIO * GEAR_RATIO));
+
                 std::cout << "[Posición] " << label << " → Nueva pos: " << nueva_pos << " rad\n";
             }
         }
