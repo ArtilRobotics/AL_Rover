@@ -178,8 +178,8 @@ void joystick_thread() {
                 float val = e.value / 32767.0f;
 
                 switch (e.number) {
-                    case 0: Vy = -val * 0.6f; break;       // Eje lateral
-                    case 1: Vx = -val * 0.6f; break;      // Eje frontal (inverso)
+                    case 0: Vy = -val * 0.8f; break;       // Eje lateral
+                    case 1: Vx = -val * 0.8f; break;      // Eje frontal (inverso)
                     case 2: omega = -val * 0.5f; break;    // Rotación
                     case 3: delta_altura = -val * paso_incremental; break; // Altura
                 }

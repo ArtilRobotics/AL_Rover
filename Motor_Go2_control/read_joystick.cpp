@@ -4,6 +4,11 @@
 #include <linux/joystick.h>
 #include <cstring>
 
+int16_t remapAxis(int16_t value) {
+    // Remapea de [-32767, 32767] a [0, 65534]
+    return static_cast<int16_t>(value + 32767);
+}
+
 int main() {
     const char *device = "/dev/input/js0";  
     int js_fd = open(device, O_RDONLY);
@@ -26,14 +31,20 @@ int main() {
     while (true) {
         ssize_t bytes = read(js_fd, &e, sizeof(e));
         if (bytes == sizeof(e)) {
-            e.type &= ~JS_EVENT_INIT;  
+            e.type &= ~JS_EVENT_INIT;
 
             if (e.type == JS_EVENT_BUTTON) {
                 std::cout << "Botón " << static_cast<int>(e.number)
                           << (e.value ? " presionado" : " liberado") << std::endl;
             } else if (e.type == JS_EVENT_AXIS) {
-                std::cout << "Eje " << static_cast<int>(e.number)
-                          << " valor: " << e.value << std::endl;
+                if (e.number == 4 || e.number == 5) {
+                    int16_t remapped = remapAxis(e.value);
+                    std::cout << "Eje " << static_cast<int>(e.number)
+                              << " remapeado: " << remapped << std::endl;
+                } else {
+                    std::cout << "Eje " << static_cast<int>(e.number)
+                              << " valor: " << e.value << std::endl;
+                }
             }
         }
     }
