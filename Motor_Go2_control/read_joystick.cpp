@@ -11,7 +11,7 @@ int main() {
     if (js_fd < 0) {
         std::cerr << "No se pudo abrir el joystick en " << device << std::endl;
         return 1;
-    }// Cambia si es js1, js2, etc.
+    }
 
     std::cout << "Joystick detectado en " << device << std::endl;
 

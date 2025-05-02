@@ -13,10 +13,6 @@
 #include <map>
 #include <cmath>
 #include "motor.h"
-#include <linux/joystick.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 
 #define MAX_BUFFER_SIZE 1024
 #define GEAR_RATIO 6.33f
@@ -37,9 +33,6 @@ struct ChannelConfig {
 std::map<std::string, Motor> g_motors;
 std::map<std::string, ChannelConfig> g_configs;
 std::atomic<bool> g_running(true);
-//Joystick Variables
-std::atomic<float> Vx(0.0), Vy(0.0), omega(0.0), delta_altura(0.0);
-std::atomic<bool> detener_motores(false);
 
 // Mapas globales para control por teclado
 std::map<std::string, std::string> logical_serials = {
@@ -158,42 +151,17 @@ void channel_thread(ChannelConfig cfg) {
     close(fd);
 }
 
-// === Control para el Joystick ====
-void joystick_thread() {
-    const char* device = "/dev/input/js0";
-    int js_fd = open(device, O_RDONLY);
-    if (js_fd < 0) {
-        std::cerr << "No se pudo abrir el joystick en " << device << std::endl;
-        return;
-    }
-
-    struct js_event e;
-
-    while (g_running) {
-        ssize_t bytes = read(js_fd, &e, sizeof(e));
-        if (bytes == sizeof(e)) {
-            e.type &= ~JS_EVENT_INIT;
-
-            if (e.type == JS_EVENT_AXIS) {
-                float val = e.value / 32767.0f;
-
-                switch (e.number) {
-                    case 0: Vy = val * 0.5f; break;       // Eje lateral
-                    case 1: Vx = -val * 0.5f; break;      // Eje frontal (inverso)
-                    case 2: omega = val * 0.5f; break;    // Rotación
-                    case 3: delta_altura = val * paso_incremental; break; // Altura
-                }
-            }
-
-            if (e.type == JS_EVENT_BUTTON && e.number == 7 && e.value) {
-                detener_motores = true;
-            }
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-    close(js_fd);
+// === Control por teclado estilo W/A/S/D ===
+char get_key() {
+    struct termios oldt, newt;
+    char ch;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
 }
 
 std::map<std::string, std::string> detect_ports() {
@@ -224,8 +192,8 @@ void send_motor_cmd(const std::string& name, const std::string& port, int id, fl
 }
 
 
-void joystick_loop() {
-    std::map<std::string, float> pos_ref;
+// === Menú Interactivo ===
+void interactive_menu() {
     std::map<std::string, int> pos_sign = {
         {"FL", 1},
         {"FR", -1},
@@ -233,60 +201,81 @@ void joystick_loop() {
         {"RR", 1}
     };
 
-    auto ports = detect_ports();
+
+    float Vx = 0, Vy = 0, omega = 0;
+    std::cout << "Controles:\n";
+    std::cout << "  W/A/S/D → Movimiento\n";
+    std::cout << "  Flechas (↑↓←→) → Rotación\n";
+    std::cout << "  M → Subir posición\n";
+    std::cout << "  N → Bajar posición\n";
+    std::cout << "  U → Detener motores\n";
+    std::cout << "  Q para salir\n";
+
+    std::map<std::string, float> pos_ref;
     std::this_thread::sleep_for(std::chrono::seconds(1));
     for (const auto& [label, motor] : g_motors) {
         pos_ref[label] = motor.getPosition() / GEAR_RATIO;
     }
 
+    std::cout << "=== Posiciones iniciales ===\n";
+    for (const auto& [label, pos] : pos_ref) {
+        std::cout << label << ": " << pos << " rad\n";
+    }
+
     while (g_running) {
-        float vx = Vx.load();
-        float vy = Vy.load();
-        float w = omega.load();
+        char key = get_key();
+        Vx = Vy = omega = 0;
+
+        if (key == 'q') break;
+
+        if (key == 'w') Vx = 0.5;
+        else if (key == 's') Vx = -0.5;
+        else if (key == 'a') Vy = 0.5;
+        else if (key == 'd') Vy = -0.5;
+        else if (key == 27 && get_key() == '[') {
+            char arrow = get_key();
+            if (arrow == 'A' || arrow == 'D') omega = 0.5;
+            else if (arrow == 'B' || arrow == 'C') omega = -0.5;
+        }
 
         float r = 0.1f;
         float L_plus_W = 1.0f;
 
-        float w1 = (1 / r) * (vx - vy - L_plus_W * w);
-        float w2 = (1 / r) * (vx + vy + L_plus_W * w);
-        float w3 = (1 / r) * (vx + vy - L_plus_W * w);
-        float w4 = (1 / r) * (vx - vy + L_plus_W * w);
+        float w1 = (1 / r) * (Vx - Vy - L_plus_W * omega);
+        float w2 = (1 / r) * (Vx + Vy + L_plus_W * omega);
+        float w3 = (1 / r) * (Vx + Vy - L_plus_W * omega);
+        float w4 = (1 / r) * (Vx - Vy + L_plus_W * omega);
 
-        std::cout << "\n[Control] Vx: " << vx
-          << ", Vy: " << vy
-          << ", omega: " << w
-          << "\n[Control] w1: " << w1 << " w2: " << w2
-          << " w3: " << w3 << " w4: " << w4 << std::endl;
-
+        auto ports = detect_ports();
 
         send_motor_cmd("FL", ports[logical_serials["FL"]], 1, w1);
         send_motor_cmd("FR", ports[logical_serials["FR"]], 0, -w2);
         send_motor_cmd("RL", ports[logical_serials["RL"]], 0, w3);
         send_motor_cmd("RR", ports[logical_serials["RR"]], 0, -w4);
 
-        float delta = delta_altura.load();
-        if (std::abs(delta) > 1e-3) {
+        if (key == 'm' || key == 'n') {
+            float delta = (key == 'm') ? paso_incremental : -paso_incremental;
             for (auto& [label, motor] : g_motors) {
                 float nueva_pos = pos_ref[label] + delta * pos_sign[label];
-                pos_ref[label] = nueva_pos;
-                motor.setControlParams(0, 0, nueva_pos * GEAR_RATIO, k_pos, 0);
-                std::cout << "[Posición] " << label << " → Nueva pos: " << nueva_pos << " rad\n";
+                if ((delta > 0) || (delta < 0 && nueva_pos >= pos_ref[label])) {
+                    pos_ref[label] = nueva_pos;
+                    motor.setControlParams(0, 0, nueva_pos * GEAR_RATIO, k_pos, 0);
+                    std::cout << label << " → Posición objetivo actualizada: " << nueva_pos << " rad\n";
+                }
             }
         }
 
-        if (detener_motores.exchange(false)) {
-            std::cout << "[Botón] Detener motores activado." << std::endl;
+        if (key == 'u') {
             for (auto& [label, motor] : g_motors) {
                 float actual = motor.getPosition() / GEAR_RATIO;
                 motor.setControlParams(0, 0, actual * GEAR_RATIO, k_pos, 0);
             }
-            std::cout << "Botón de parada presionado. Motores detenidos.\n";
+            std::cout << "Motores detenidos.\n";
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
-
 
 
 int main() {
@@ -302,12 +291,9 @@ int main() {
     for (const auto& cfg : configs)
         threads.emplace_back(channel_thread, cfg);
 
-    std::thread js_thread(joystick_thread);   
-
-    joystick_loop();
+    interactive_menu();
 
     for (auto& t : threads) t.join();
-    js_thread.join();
 
     std::cout << "Sistema apagado correctamente.\n";
     return 0;
