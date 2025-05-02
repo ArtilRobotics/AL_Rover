@@ -16,6 +16,8 @@
 #include <linux/joystick.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstdint>
+#include <cstring>
 
 
 #define MAX_BUFFER_SIZE 1024
@@ -41,6 +43,10 @@ std::atomic<bool> g_running(true);
 std::atomic<float> Vx(0.0), Vy(0.0), omega(0.0), delta_altura(0.0);
 std::atomic<bool> detener_motores(false);
 
+// Variable de velocidades
+std::atomic<float> velocidad_factor(0.5f);  // valor inicial
+
+
 // Mapas globales para control por teclado
 std::map<std::string, std::string> logical_serials = {
     {"FR", "FT8ISETK"},
@@ -50,6 +56,9 @@ std::map<std::string, std::string> logical_serials = {
 };
 Motor g_motor;
 
+uint16_t remapAxis(int16_t value) {
+    return static_cast<uint16_t>(static_cast<int32_t>(value) + 32768);
+}
 
 // === Señal de salida ===
 void signal_handler(int) {
@@ -178,15 +187,36 @@ void joystick_thread() {
                 float val = e.value / 32767.0f;
 
                 switch (e.number) {
-                    case 0: Vy = -val * 0.8f; break;       // Eje lateral
-                    case 1: Vx = -val * 0.8f; break;      // Eje frontal (inverso)
-                    case 2: omega = -val * 0.5f; break;    // Rotación
-                    case 3: delta_altura = -val * paso_incremental; break; // Altura
+                    case 2: Vy = -val * velocidad_factor.load(); break;       // Eje lateral
+                    case 1: Vx = -val * velocidad_factor.load(); break;      // Eje frontal (inverso)
+                    case 0: omega = -val * velocidad_factor.load(); break;    // Rotación
+                    //case 3: delta_altura = -val * paso_incremental; break; // Altura
+                    case 4: {  // Gatillo izquierdo (subir)
+                        float normalized = remapAxis(e.value) / 65535.0f;
+                        delta_altura = normalized * paso_incremental;
+                        break;
+                    }
+                    case 5: {  // Gatillo derecho (bajar)
+                        float normalized = remapAxis(e.value) / 65535.0f;
+                        delta_altura = -normalized * paso_incremental;
+                        break;
+                    }
                 }
             }
 
-            if (e.type == JS_EVENT_BUTTON && e.number == 7 && e.value) {
+            if (e.type == JS_EVENT_BUTTON && e.number == 3 && e.value) {
                 detener_motores = true;
+            }
+            
+            if (e.number == 10 && e.value) { // Restar velocidad
+                float v = velocidad_factor.load();
+                velocidad_factor.store(std::max(0.1f, v - 0.1f));
+                std::cout << "[Botón 10] Reduciendo velocidad: " << velocidad_factor.load() << std::endl;
+            }
+            if (e.number == 11 && e.value) { // Aumentar velocidad
+                float v = velocidad_factor.load();
+                velocidad_factor.store(std::min(1.0f, v + 0.1f));
+                std::cout << "[Botón 11] Aumentando velocidad: " << velocidad_factor.load() << std::endl;
             }
         }
 

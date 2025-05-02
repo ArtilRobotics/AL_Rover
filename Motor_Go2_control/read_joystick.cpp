@@ -4,9 +4,9 @@
 #include <linux/joystick.h>
 #include <cstring>
 
-int16_t remapAxis(int16_t value) {
+uint16_t remapAxis(int16_t value) {
     // Remapea de [-32767, 32767] a [0, 65534]
-    return static_cast<int16_t>(value + 32767);
+    return static_cast<uint16_t>(value + 32767);
 }
 
 int main() {
@@ -38,7 +38,7 @@ int main() {
                           << (e.value ? " presionado" : " liberado") << std::endl;
             } else if (e.type == JS_EVENT_AXIS) {
                 if (e.number == 4 || e.number == 5) {
-                    int16_t remapped = remapAxis(e.value);
+                    uint16_t remapped = remapAxis(e.value);
                     std::cout << "Eje " << static_cast<int>(e.number)
                               << " remapeado: " << remapped << std::endl;
                 } else {
