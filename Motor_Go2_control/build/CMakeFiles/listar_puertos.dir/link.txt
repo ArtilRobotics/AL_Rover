@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/listar_puertos.dir/listar_puertos.cpp.o -o listar_puertos  -lserialport 
