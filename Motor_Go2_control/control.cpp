@@ -17,9 +17,10 @@
 #define MAX_BUFFER_SIZE 1024
 #define GEAR_RATIO 6.33f
 
-float k_pos = 0.0f;
+float k_pos = 5.0f;
 const float dt = 0.5f;
 const float velocidad = 0.05f;
+const float paso_incremental = 0.1f;
 
 // === Estructura Configuración Canal ===
 struct ChannelConfig {
@@ -190,15 +191,36 @@ void send_motor_cmd(const std::string& name, const std::string& port, int id, fl
     close(fd);
 }
 
-void control_loop_keyboard() {
-    auto serial_to_port = detect_ports();
-    float Vx = 0, Vy = 0, omega = 0;
 
+// === Menú Interactivo ===
+void interactive_menu() {
+    std::map<std::string, int> pos_sign = {
+        {"FL", 1},
+        {"FR", -1},
+        {"RL", -1},
+        {"RR", 1}
+    };
+
+
+    float Vx = 0, Vy = 0, omega = 0;
     std::cout << "Controles:\n";
     std::cout << "  W/A/S/D → Movimiento\n";
     std::cout << "  Flechas (↑↓←→) → Rotación\n";
-    std::cout << "  E → Detener\n";
+    std::cout << "  M → Subir posición\n";
+    std::cout << "  N → Bajar posición\n";
+    std::cout << "  U → Detener motores\n";
     std::cout << "  Q para salir\n";
+
+    std::map<std::string, float> pos_ref;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    for (const auto& [label, motor] : g_motors) {
+        pos_ref[label] = motor.getPosition() / GEAR_RATIO;
+    }
+
+    std::cout << "=== Posiciones iniciales ===\n";
+    for (const auto& [label, pos] : pos_ref) {
+        std::cout << label << ": " << pos << " rad\n";
+    }
 
     while (g_running) {
         char key = get_key();
@@ -231,135 +253,24 @@ void control_loop_keyboard() {
         send_motor_cmd("RL", ports[logical_serials["RL"]], 0, w3);
         send_motor_cmd("RR", ports[logical_serials["RR"]], 0, -w4);
 
-        if (key == 'e') {
-            send_motor_cmd("FL", ports[logical_serials["FL"]], 1, 0);
-            send_motor_cmd("FR", ports[logical_serials["FR"]], 0, 0);
-            send_motor_cmd("RL", ports[logical_serials["RL"]], 0, 0);
-            send_motor_cmd("RR", ports[logical_serials["RR"]], 0, 0);
+        if (key == 'm' || key == 'n') {
+            float delta = (key == 'm') ? paso_incremental : -paso_incremental;
+            for (auto& [label, motor] : g_motors) {
+                float nueva_pos = pos_ref[label] + delta * pos_sign[label];
+                if ((delta > 0) || (delta < 0 && nueva_pos >= pos_ref[label])) {
+                    pos_ref[label] = nueva_pos;
+                    motor.setControlParams(0, 0, nueva_pos * GEAR_RATIO, k_pos, 0);
+                    std::cout << label << " → Posición objetivo actualizada: " << nueva_pos << " rad\n";
+                }
+            }
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-}
-
-// === Menú Interactivo ===
-void interactive_menu() {
-    std::map<std::string, int> pos_sign = {
-        {"FL", 1},
-        {"FR", -1},
-        {"RL", -1},
-        {"RR", 1}
-    };
-
-    std::map<std::string, float> pos_ref;
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    for (const auto& [label, motor] : g_motors) {
-        pos_ref[label] = motor.getPosition() / GEAR_RATIO;
-    }
-
-    std::cout << "=== Posiciones iniciales ===\n";
-    for (const auto& [label, pos] : pos_ref) {
-        std::cout << label << ": " << pos << " rad\n";
-    }
-
-    while (g_running) {
-        std::cout << "\n=== MENÚ CONTROL MOTORES ===\n";
-        std::cout << "1. Detener motores\n";
-        std::cout << "2. Desplazamiento relativo (menu)\n";
-        std::cout << "3. Control con teclado (W/A/S/D + flechas)\n";
-        std::cout << "4. Salir\n";
-        std::cout << "Opción: ";
-
-        int opcion;
-        std::cin >> opcion;
-
-        if (opcion == 1) {
-            std::cout << "Ingrese Kpos: ";
-            std::cin >> k_pos;
-
+        if (key == 'u') {
             for (auto& [label, motor] : g_motors) {
-                float actual_pos = motor.getPosition() / GEAR_RATIO;
-                motor.setControlParams(0, 0, actual_pos * GEAR_RATIO, k_pos, 0);
+                float actual = motor.getPosition() / GEAR_RATIO;
+                motor.setControlParams(0, 0, actual * GEAR_RATIO, k_pos, 0);
             }
-
-            std::cout << "Motores detenidos manteniendo su posición actual.\n";
-
-        } else if (opcion == 2) {
-            float desplazamiento;
-            std::cout << "Desplazamiento en rad: ";
-            std::cin >> desplazamiento;
-
-            std::cout << "\n=== Posiciones destino ===\n";
-            std::map<std::string, float> targets;
-            for (const auto& [label, ref] : pos_ref) {
-                float target = ref + desplazamiento * pos_sign[label];
-
-                if (desplazamiento < 0) {
-                    if ((pos_sign[label] > 0 && target < ref) || 
-                        (pos_sign[label] < 0 && target > ref)) {
-                        target = ref;
-                    }
-                }
-
-                std::cout << label << ": " << target << " rad";
-                if (std::abs(target - ref) < 1e-3)
-                    std::cout << " (↩ Se queda en posición inicial)";
-                std::cout << "\n";
-
-                targets[label] = target;
-            }
-
-            std::cout << "¿Mover a estas posiciones? (s/n): ";
-            char conf;
-            std::cin >> conf;
-
-            if (conf == 's' || conf == 'S') {
-                std::map<std::string, float> actuales;
-                std::map<std::string, float> diferencias;
-                std::map<std::string, float> pasos_valor;
-                int pasos_max = 0;
-
-                for (const auto& [label, target] : targets) {
-                    float actual = g_motors[label].getPosition() / GEAR_RATIO;
-                    float diferencia = target - actual;
-                    int pasos = std::ceil(std::abs(diferencia) / (velocidad * dt));
-                    float paso = (pasos == 0) ? 0 : diferencia / pasos;
-
-                    actuales[label] = actual;
-                    diferencias[label] = diferencia;
-                    pasos_valor[label] = paso;
-
-                    if (pasos > pasos_max)
-                        pasos_max = pasos;
-                }
-
-                for (int i = 0; i < pasos_max; ++i) {
-                    for (const auto& [label, target] : targets) {
-                        float actual = actuales[label];
-                        float paso = pasos_valor[label];
-
-                        float pos_interpolada = actual + paso * i;
-                        g_motors[label].setControlParams(
-                            0, 0, pos_interpolada * GEAR_RATIO,
-                            60.0f / (GEAR_RATIO * GEAR_RATIO),
-                            5.0f / (GEAR_RATIO * GEAR_RATIO));
-                    }
-
-                    std::this_thread::sleep_for(std::chrono::duration<float>(dt));
-                }
-            }
-
-        
-
-        } else if (opcion == 3) {
-            std::cout << "Ingresando a control con teclado...\n";
-            control_loop_keyboard();
-
-        } else if (opcion == 4) {
-            g_running = false;
-
-        } else {
-            std::cout << "Opción inválida.\n";
+            std::cout << "Motores detenidos.\n";
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));

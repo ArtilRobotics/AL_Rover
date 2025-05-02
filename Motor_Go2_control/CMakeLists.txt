@@ -27,6 +27,7 @@ add_executable(arms_control arms_control.cpp motor.cpp)
 
 add_executable(read_motors read_motors.cpp motor.cpp)
 
+add_executable(read_joystick read_joystick.cpp)
 
 add_executable(identifica_u2d2 identifica_u2d2.cpp)
 
