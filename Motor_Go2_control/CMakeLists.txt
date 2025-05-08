@@ -10,6 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBSERIALPORT REQUIRED libserialport)
 
+find_package(SFML 2.5 COMPONENTS audio REQUIRED)
+
 include_directories(${LIBSERIALPORT_INCLUDE_DIRS})
 link_directories(${LIBSERIALPORT_LIBRARY_DIRS})
 
@@ -35,6 +37,12 @@ add_executable(control control.cpp motor.cpp)
 
 add_executable(listar_puertos  listar_puertos.cpp)
 
+add_executable(audio_demo audio_demo.cpp)
+
+target_link_libraries(audio_demo sfml-audio)
+
+target_link_libraries(control sfml-audio)
+
 target_link_libraries(listar_puertos ${LIBSERIALPORT_LIBRARIES})
  
 target_link_libraries(control ${LIBSERIALPORT_LIBRARIES})
@@ -48,3 +56,6 @@ target_link_libraries(control_mecanum spnav)
 target_link_libraries(arms_control ${LIBSERIALPORT_LIBRARIES})
 
 target_link_libraries(read_motors ${LIBSERIALPORT_LIBRARIES})
+
+
+file(COPY ${CMAKE_SOURCE_DIR}/audio DESTINATION ${CMAKE_BINARY_DIR})

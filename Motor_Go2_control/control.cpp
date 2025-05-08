@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <cstdint>
 #include <cstring>
+#include <SFML/Audio.hpp>
 
 
 #define MAX_BUFFER_SIZE 1024
@@ -170,33 +171,38 @@ void channel_thread(ChannelConfig cfg) {
 // === Control para el Joystick ====
 void joystick_thread() {
     const char* device = "/dev/input/js0";
-    int js_fd = open(device, O_RDONLY);
-    if (js_fd < 0) {
-        std::cerr << "No se pudo abrir el joystick en " << device << std::endl;
-        return;
-    }
+    int js_fd = -1;
 
     struct js_event e;
 
     while (g_running) {
+        if (js_fd < 0) {
+            js_fd = open(device, O_RDONLY | O_NONBLOCK);
+            if (js_fd >= 0) {
+                std::cout << "[Joystick] Conectado exitosamente.\n";
+            } else {
+                std::cerr << "[Joystick] No se pudo abrir " << device << ", reintentando...\n";
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                continue;
+            }
+        }
+
         ssize_t bytes = read(js_fd, &e, sizeof(e));
         if (bytes == sizeof(e)) {
             e.type &= ~JS_EVENT_INIT;
 
             if (e.type == JS_EVENT_AXIS) {
                 float val = e.value / 32767.0f;
-
                 switch (e.number) {
-                    case 2: Vy = -val * velocidad_factor.load(); break;       // Eje lateral
-                    case 1: Vx = -val * velocidad_factor.load(); break;      // Eje frontal (inverso)
-                    case 0: omega = -val * velocidad_factor.load(); break;    // Rotación
-                    //case 3: delta_altura = -val * paso_incremental; break; // Altura
-                    case 4: {  // Gatillo izquierdo (subir)
+                    case 2: Vy = -val * velocidad_factor.load(); break;
+                    case 1: Vx = -val * velocidad_factor.load(); break;
+                    case 0: omega = -val * velocidad_factor.load(); break;
+                    case 4: {
                         float normalized = remapAxis(e.value) / 65535.0f;
                         delta_altura = normalized * paso_incremental;
                         break;
                     }
-                    case 5: {  // Gatillo derecho (bajar)
+                    case 5: {
                         float normalized = remapAxis(e.value) / 65535.0f;
                         delta_altura = -normalized * paso_incremental;
                         break;
@@ -204,27 +210,34 @@ void joystick_thread() {
                 }
             }
 
-            if (e.type == JS_EVENT_BUTTON && e.number == 3 && e.value) {
-                detener_motores = true;
+            if (e.type == JS_EVENT_BUTTON && e.value) {
+                if (e.number == 3) detener_motores = true;
+                if (e.number == 10) {
+                    float v = velocidad_factor.load();
+                    velocidad_factor.store(std::max(0.1f, v - 0.1f));
+                    std::cout << "[Botón 10] Reduciendo velocidad: " << velocidad_factor.load() << std::endl;
+                }
+                if (e.number == 11) {
+                    float v = velocidad_factor.load();
+                    velocidad_factor.store(std::min(1.0f, v + 0.1f));
+                    std::cout << "[Botón 11] Aumentando velocidad: " << velocidad_factor.load() << std::endl;
+                }
             }
-            
-            if (e.number == 10 && e.value) { // Restar velocidad
-                float v = velocidad_factor.load();
-                velocidad_factor.store(std::max(0.1f, v - 0.1f));
-                std::cout << "[Botón 10] Reduciendo velocidad: " << velocidad_factor.load() << std::endl;
-            }
-            if (e.number == 11 && e.value) { // Aumentar velocidad
-                float v = velocidad_factor.load();
-                velocidad_factor.store(std::min(1.0f, v + 0.1f));
-                std::cout << "[Botón 11] Aumentando velocidad: " << velocidad_factor.load() << std::endl;
-            }
+
+        } else if (bytes < 0 && errno != EAGAIN) {
+            std::cerr << "[Joystick] Error al leer o joystick desconectado. Cerrando y reintentando...\n";
+            close(js_fd);
+            js_fd = -1;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    close(js_fd);
+    if (js_fd >= 0)
+        close(js_fd);
 }
+
 
 std::map<std::string, std::string> detect_ports() {
     std::map<std::string, std::string> serial_to_port;
@@ -323,17 +336,48 @@ void joystick_loop() {
 int main() {
     signal(SIGINT, signal_handler);
 
-    auto configs = detect_channels();
-    if (configs.empty()) {
-        std::cerr << "No se detectaron motores válidos.\n";
-        return 1;
+    std::vector<ChannelConfig> configs;
+
+    while (g_running) {
+        configs = detect_channels();
+
+        std::set<std::string> found_serials;
+        for (const auto& cfg : configs) {
+            std::string serial = logical_serials[cfg.label];
+            found_serials.insert(serial);
+        }
+
+        bool all_present = true;
+        for (const auto& [label, expected_serial] : logical_serials) {
+            if (found_serials.find(expected_serial) == found_serials.end()) {
+                std::cerr << "[Esperando] Falta U2D2 con serial: " << expected_serial << " (" << label << ")\n";
+                all_present = false;
+            }
+        }
+
+        if (all_present) {
+            std::cout << "[OK] Todos los U2D2 están conectados.\n";
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+
+    sf::SoundBuffer inicioBuffer;
+    if (!inicioBuffer.loadFromFile("audio/start.wav")) {
+        std::cerr << "[Audio] Error cargando audio de inicio.\n";
+    } else {
+        static sf::Sound inicioSound;  // static para que no se destruya al salir del bloque
+        inicioSound.setBuffer(inicioBuffer);
+        inicioSound.play();
+        std::cout << "[Audio] Sonido de inicio reproducido.\n";
     }
 
     std::vector<std::thread> threads;
     for (const auto& cfg : configs)
         threads.emplace_back(channel_thread, cfg);
 
-    std::thread js_thread(joystick_thread);   
+    std::thread js_thread(joystick_thread);
 
     joystick_loop();
 

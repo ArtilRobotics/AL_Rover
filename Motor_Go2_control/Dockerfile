@@ -1,7 +1,6 @@
-# Usa Ubuntu como sistema base
+# Ubuntu Base
 FROM ubuntu:22.04
 
-# Evita preguntas interactivas durante la instalación
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Instala dependencias necesarias
@@ -12,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libserialport-dev \
     libspnav-dev \
     libx11-dev \
+    libsfml-audio-dev \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,6 +25,6 @@ COPY . /app
 RUN mkdir build
 WORKDIR /app/build
 
-# Construye el proyecto con cmake y make
+# Compila y construye el proyecto
 RUN cmake ..
 RUN make
