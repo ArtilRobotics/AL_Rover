@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBSERIALPORT REQUIRED libserialport)
 
-find_package(SFML 2.5 COMPONENTS audio REQUIRED)
+find_package(SFML COMPONENTS audio REQUIRED)
 
 include_directories(${LIBSERIALPORT_INCLUDE_DIRS})
 link_directories(${LIBSERIALPORT_LIBRARY_DIRS})
