@@ -99,5 +99,26 @@ Para pruebas y configuraciones previas, se incluyen los siguientes scripts:
 * `listar_puertos.cpp`: Lista todas las interfaces seriales disponibles, útil para identificar el número de serie de nuevos U2D2 conectados.
 
 Estos archivos son fundamentales para validar el sistema antes de usar el control completo.
+## 🔌 Esquema de Conexión
 
+
+
+Cada interfaz U2D2 se detecta mediante su número de serie y se asocia a una extremidad del rover.
+
+---
+## 🔌 Esquema de Conexión
+
+![FL](https://github.com/user-attachments/assets/e5943b42-1a40-4920-aaba-292dadc9a075)
+
+
+Cada interfaz U2D2 se detecta mediante su número de serie y se asocia a una extremidad del rover.
+
+---
+
+## 🐳 Despliegue con Docker en Balena
+
+El repositorio incluye un `Dockerfile` listo para ser utilizado con [Balena.io](https://www.balena.io/), probado exitosamente en un entorno real.
+
+✅ **Dockerfile validado**
+Puedes usarlo para hacer *deploy* directo al Jetson Nano o Raspberry Pi desde el dashboard de Balena.
 
