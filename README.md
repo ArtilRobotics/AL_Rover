@@ -37,3 +37,67 @@ Para una guía detallada sobre la configuración, control y protocolos de comuni
 
 🔗 [Unitree Motor SDK - Developer Guide](https://support.unitree.com/home/en/Motor_SDK_Dev_Guide/overview)
 
+___
+## Control del Rover
+
+En esta versión del proyecto, **AL-Rover** está listo para ser controlado mediante un joystick de **Xbox**, utilizando el script `control.cpp` escrito en **C++**. Este script permite:
+
+- **Movimiento omnidireccional** del rover.
+- **Levantamiento y descenso** del cuerpo en incrementos definidos.
+- Control mediante **modos de posición y velocidad**.
+- Utilización del **modo Damping** para resistencia pasiva y estabilidad.
+
+### 🌀 Modo Damping
+
+> *Damping mode is a special velocity mode. When we set W = 0.0, the motor will maintain a shaft speed of 0. When rotated by external forces, an impedance torque is generated in the opposite direction, proportional to the rotational speed. Once the force is removed, the motor holds its current position. This resembles a linear damper—hence the name.*
+
+Este modo es especialmente útil para **bloquear articulaciones** pasivamente, aportando seguridad y estabilidad al sistema.
+
+---
+
+### Identificación de Interfaces Seriales
+
+Cada U2D2 conectado a una articulación se identifica mediante su **número de serie**, lo cual debe actualizarse en el código en caso de cambios de hardware. En `control.cpp`, se configuran así:
+
+```cpp
+std::map<std::string, std::string> logical_serials = {
+    {"FR", "FT8ISETK"},
+    {"FL", "FT7WBEJZ"},
+    {"RR", "FT89FBGO"},
+    {"RL", "FT94W6WF"}
+};
+````
+
+También deben ajustarse los **IDs de los motores** correspondientes a los hombros:
+
+```cpp
+std::map<std::string, int> label_to_motor_id = {
+    {"FL", 0}, {"FR", 1}, {"RL", 1}, {"RR", 1}
+};
+```
+
+Y finalmente, los comandos se envían según esta configuración a las ruedas, que se deben modificar igual en caso de cambio:
+
+```cpp
+send_motor_cmd("FL", ports[logical_serials["FL"]], 1, w1);
+send_motor_cmd("FR", ports[logical_serials["FR"]], 0, -w2);
+send_motor_cmd("RL", ports[logical_serials["RL"]], 0, w3);
+send_motor_cmd("RR", ports[logical_serials["RR"]], 0, -w4);
+```
+
+---
+
+### Scripts adicionales
+
+Para pruebas y configuraciones previas, se incluyen los siguientes scripts:
+
+* `read_joystick.cpp`: Lee el joystick y publica el estado de botones y ejes.
+* `menu_motor_move.cpp`: Permite mover motores individualmente desde un menú interactivo.
+* `read_motors.cpp`: Lee y muestra el estado de todos los motores.
+* `control_mecanum.cpp`: Control exclusivo de ruedas con movimiento mecanum.
+* `arms_control.cpp`: Control exclusivo de los brazos del rover.
+* `listar_puertos.cpp`: Lista todas las interfaces seriales disponibles, útil para identificar el número de serie de nuevos U2D2 conectados.
+
+Estos archivos son fundamentales para validar el sistema antes de usar el control completo.
+
+
